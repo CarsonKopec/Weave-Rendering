@@ -1,10 +1,11 @@
 package dev.jkit.ionview.render.geometry;
 
 import dev.jkit.ionview.math.Bounds;
-import dev.jkit.ionview.math.Matrix3;
-import dev.jkit.ionview.math.Vector2;
 import dev.jkit.ionview.render.graphics.Shape;
 import dev.jkit.ionview.render.graphics.ShapeType;
+
+import org.joml.Matrix3x2f;
+import org.joml.Vector2f;
 
 public class RoundedRect implements Shape {
     public float x, y, width, height;
@@ -19,25 +20,35 @@ public class RoundedRect implements Shape {
     }
 
     @Override
-    public ShapeType getType() { return ShapeType.ROUNDED_RECT; }
+    public ShapeType getType() {
+        return ShapeType.ROUNDED_RECT;
+    }
 
     @Override
-    public Bounds getBounds() { return new Bounds(x, y, x + width, y + height); }
+    public Bounds getBounds() {
+        return new Bounds(x, y, x + width, y + height);
+    }
 
     @Override
-    public void transform(Matrix3 matrix) {
-        Vector2 topLeft = matrix.multiply(new Vector2(x, y));
-        Vector2 bottomRight = matrix.multiply(new Vector2(x + width, y + height));
+    public void transform(Matrix3x2f matrix) {
+        Vector2f topLeft = new Vector2f(x, y);
+        Vector2f bottomRight = new Vector2f(x + width, y + height);
+
+        matrix.transformPosition(topLeft);
+        matrix.transformPosition(bottomRight);
+
         this.x = topLeft.x;
         this.y = topLeft.y;
         this.width = bottomRight.x - topLeft.x;
         this.height = bottomRight.y - topLeft.y;
 
+        float scale = (matrix.m00() + matrix.m11()) * 0.5f;
+
         this.radius = new BorderRadius(
-                radius.topLeft() * matrix.getScaleX(),
-                radius.topRight() * matrix.getScaleX(),
-                radius.bottomRight() * matrix.getScaleX(),
-                radius.bottomLeft() * matrix.getScaleX()
+                radius.topLeft() * scale,
+                radius.topRight() * scale,
+                radius.bottomRight() * scale,
+                radius.bottomLeft() * scale
         );
     }
 }
